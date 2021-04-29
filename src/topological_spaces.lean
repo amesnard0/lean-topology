@@ -13,6 +13,9 @@ class topological_space (X : Type) :=
 
 namespace topological_space
 
+-- Fermés :
+def is_closed {X : Type} [topological_space X] : set X → Prop := λ F, is_open (compl F)
+
 -- Preuve que l'ensemble vide est un ouvert à partir des autres axiomes :
 lemma empty_mem {X : Type} [topological_space X] : is_open (∅ : set X) :=
 begin
