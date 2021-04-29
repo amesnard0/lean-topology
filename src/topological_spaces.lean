@@ -193,3 +193,7 @@ def neighbourhood {X : Type} [topological_space X] (x : X) (V : set X) : Prop :=
 -- Convergence d'une suite :
 def seq_lim {X : Type} [topological_space X] (u : ℕ → X) (l : X) : Prop :=
 ∀ (V : set X), neighbourhood l V → ∃ (N : ℕ), ∀ n ≥ N, u n ∈ V
+
+-- Fonction continue :
+def continuous {X Y : Type} [topological_space X] [topological_space Y] (f : X → Y) : Prop :=
+∀ (U : set Y), is_open U → is_open (f ⁻¹' U)
