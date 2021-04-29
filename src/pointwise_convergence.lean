@@ -14,7 +14,7 @@ def pointwise_lim {X Y : Type} [topological_space Y] (f : ℕ → (X → Y)) (F 
 ∀ (x : X), seq_lim (λ n, f n x) (F x)
 
 -- Topologie produit sur X → Y :
-instance (X Y : Type) [topological_space Y] : topological_space (X → Y) :=
+instance fnct.topological_space (X Y : Type) [topological_space Y] : topological_space (X → Y) :=
 topological_space.generate_from (X → Y) {U | ∃ (x : X) (Ux : set Y) (hUx : is_open Ux), U = {f : X → Y | f x ∈ Ux}}
 
 -- Base de la topologie produit (intersections finies de générateurs) :
