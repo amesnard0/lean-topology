@@ -6,10 +6,10 @@ open set
 -- Definition d'un espace topologique :
 @[ext]
 class topological_space (X : Type) :=
-  (is_open : set X → Prop)
+  (is_open  : set X → Prop)
   (univ_mem : is_open univ)
-  (union : ∀ (B : set (set X)) (h : ∀ b ∈ B, is_open b), is_open (⋃₀ B))
-  (inter : ∀ (A B : set X) (hA : is_open A) (hB : is_open B), is_open (A ∩ B))
+  (union    : ∀ (B : set (set X)) (h : ∀ b ∈ B, is_open b), is_open (⋃₀ B))
+  (inter    : ∀ (A B : set X) (hA : is_open A) (hB : is_open B), is_open (A ∩ B))
 
 namespace topological_space
 
@@ -56,10 +56,10 @@ end
 
 -- Topologie discrete :
 def discrete (X : Type) : topological_space X :=
-{ is_open := λ U, true,
+{ is_open  := λ U, true,
   univ_mem := trivial,
-  union := begin intros B h, trivial, end,
-  inter := begin intros A hA B hB, trivial, end }
+  union    := begin intros B h, trivial, end,
+  inter    := begin intros A hA B hB, trivial, end }
 
 -- Definition d'un espace discret :
 class discrete_space (X : Type) [topological_space X] :=
@@ -68,9 +68,9 @@ class discrete_space (X : Type) [topological_space X] :=
 -- Topologie engendrée par un ensemble de parties :
 inductive generated_open (X : Type) (g : set (set X)) : set X → Prop
 | generator : ∀ A ∈ g, generated_open A
-| inter : ∀ A B, generated_open A → generated_open B → generated_open (A ∩ B)
-| union : ∀ (B : set (set X)), (∀ b ∈ B, generated_open b) → generated_open (⋃₀ B)
-| univ : generated_open univ
+| inter     : ∀ A B, generated_open A → generated_open B → generated_open (A ∩ B)
+| union     : ∀ (B : set (set X)), (∀ b ∈ B, generated_open b) → generated_open (⋃₀ B)
+| univ      : generated_open univ
 
 def generate_from (X : Type) (g : set (set X)) : topological_space X :=
 { is_open   := generated_open X g,
