@@ -1,6 +1,3 @@
-import tactic
-import data.set.finite
-
 import topological_spaces
 
 open set

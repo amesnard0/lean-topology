@@ -1,14 +1,10 @@
-import tactic
-import data.set.finite
-import data.real.basic
-
 import topological_spaces
 import t2_spaces
 
+import data.real.basic
+
 noncomputable theory
 open set
-
-open_locale big_operators
 
 -- Definition d'un espace métrique :
 class metric_space_basic (X : Type) :=
@@ -87,9 +83,9 @@ begin
   repeat {split},
   apply generated_open.generator, use [x, r/2],
   apply generated_open.generator, use [y, r/2],
-  calc dist x x = 0 : (dist_eq_zero_iff x x).2 rfl
+  calc dist x x = 0   : (dist_eq_zero_iff x x).2 rfl
             ... < r/2 : by linarith,
-  calc dist y y = 0 : (dist_eq_zero_iff y y).2 rfl
+  calc dist y y = 0   : (dist_eq_zero_iff y y).2 rfl
             ... < r/2 : by linarith,
   apply le_antisymm,
   { rintros z ⟨ hzUx, hzUy ⟩,
@@ -97,12 +93,33 @@ begin
     have hyz : dist y z < r/2, exact hzUy,
     have :=
     calc dist x y ≤ dist x z + dist z y : triangle x z y
-            ... = dist x z + dist y z : by linarith [dist_symm y z]
-            ... < r/2 + r/2 : by linarith [hxz, hyz]
-            ... = r : by linarith,
+              ... = dist x z + dist y z : by linarith [dist_symm y z]
+              ... < r/2 + r/2           : by linarith [hxz, hyz]
+              ... = r                   : by linarith,
     linarith, },
   { intros x hx, exfalso, exact hx, },
 end }
+
+-- Espace métrique ℝ :
+instance : metric_space_basic ℝ :=
+{ dist := λ x y,  abs (x - y),
+  dist_eq_zero_iff :=
+  begin
+    intros x y,
+    split,
+    intro hyp,
+    linarith [abs_eq_zero.1 hyp],
+    intro hyp,
+    simp [hyp],
+  end,
+  dist_symm := abs_sub,
+  triangle :=
+  begin
+    intros x y z,
+    have clef : x - z = (x - y) + (y - z), linarith,
+    calc abs (x - z) = abs ((x - y) + (y - z))   : by simp [clef]
+                 ... ≤ abs (x - y) + abs (y - z) : abs_add _ _,
+  end }
 
 /- On redéfinit maintenant un espace métrique comme la donnée d'un espace topologique et d'un espace métrique
 tels que la topologie soit égale à la topologie induite par la distance : -/
