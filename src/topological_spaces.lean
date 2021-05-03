@@ -65,7 +65,7 @@ def discrete (X : Type) : topological_space X :=
   inter    := begin intros A hA B hB, trivial, end }
 
 -- Definition d'un espace discret :
-class discrete_space (X : Type) [topological_space X] :=
+class discrete_space (X : Type) [topological_space X] := 
 (all_open : ∀ U : set X, is_open U)
 
 -- Topologie engendrée par un ensemble de parties :
@@ -186,17 +186,3 @@ topological_space X := {
   }
 
 end topological_space
-
-open topological_space
-
--- Voisinage :
-def neighbourhood {X : Type} [topological_space X] (x : X) (V : set X) : Prop :=
-∃ (U : set X), is_open U ∧ x ∈ U ∧ U ⊆ V
-
--- Convergence d'une suite :
-def seq_lim {X : Type} [topological_space X] (u : ℕ → X) (l : X) : Prop :=
-∀ (V : set X), neighbourhood l V → ∃ (N : ℕ), ∀ n ≥ N, u n ∈ V
-
--- Fonction continue :
-def continuous {X Y : Type} [topological_space X] [topological_space Y] (f : X → Y) : Prop :=
-∀ (U : set Y), is_open U → is_open (f ⁻¹' U)
