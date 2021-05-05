@@ -96,7 +96,7 @@ topological_space.generate_from (X × Y) {U | ∃ (Ux : set X) (Uy : set Y)
   (hx : is_open Ux) (hy : is_open Uy), U = set.prod Ux Uy}
 
 -- Les ouverts pour la topologie produit sont les réunions d'ouverts élémentaires :
-lemma is_open_prod_iff (X Y : Type) [topological_space X] [topological_space Y]
+lemma is_open_prod_iff {X Y : Type} [topological_space X] [topological_space Y]
   {s : set (X × Y)} :
 is_open s ↔ (∀a b, (a, b) ∈ s → ∃u v, is_open u ∧ is_open v ∧
                                   a ∈ u ∧ b ∈ v ∧ set.prod u v ⊆ s) :=

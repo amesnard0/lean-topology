@@ -31,6 +31,63 @@ end
 instance {X : Type} [metric_space_basic X] : topological_space X :=
 generate_from X { B | ∃ (x : X) r, B = {y | dist x y < r} }
 
+-- Caractérisation des ouverts pour la distance :
+lemma is_open_metric_iff {X : Type} [metric_space_basic X] {U : set X}:
+is_open U ↔ ∀ x ∈ U, ∃ r > 0, {y | dist x y < r} ⊆ U :=
+begin
+  split,
+  { intro hyp,
+    intros x hx,
+    induction hyp,
+    { rcases hyp_H with ⟨xA, r, hA⟩,
+      rw hA at hx, simp at hx,
+      use [r - dist xA x, by linarith [hx]],
+      intros y hy, simp at hy,
+      rw hA,
+      calc dist xA y ≤ dist xA x + dist x y      : triangle xA x y
+                 ... < dist xA x + r - dist xA x : by linarith [hy]
+                 ... = r                         : by linarith, },
+    { rcases hyp_ih_ᾰ hx.1 with ⟨r1, hr1, hA⟩,
+      rcases hyp_ih_ᾰ_1 hx.2 with ⟨r2, hr2, hB⟩,
+      use min r1 r2, split,
+      exact lt_min hr1 hr2,
+      intros y hy, split,
+      apply hA,
+      calc dist x y < min r1 r2 : hy
+                ... ≤ r1        : min_le_left r1 r2,
+      apply hB,
+      calc dist x y < min r1 r2 : hy
+                ... ≤ r2        : min_le_right r1 r2, },
+    { rcases hx with ⟨b, hbB, hxb⟩,
+      rcases hyp_ih b hbB hxb with ⟨r, hr, hb⟩,
+      use [r, hr],
+      intros y hy,
+      use b, split,
+      exact hbB, exact hb hy, },
+    { use [1, by linarith], simp, }, },
+  { intro hyp,
+    choose φ hφ using hyp,
+    have clef : U = ⋃₀ { ({y : X | dist x y < φ x H}) | (x : X) (H : x ∈ U) },
+    { apply le_antisymm,
+      { intros x hx,
+        use {y : X | dist x y < φ x hx}, split,
+        use [x, hx],
+        specialize hφ x hx, rw exists_prop at hφ,
+        calc dist x x = 0      : (dist_eq_zero_iff x x).2 rfl
+                  ... < φ x hx : by linarith [hφ.1], },
+      { apply sUnion_subset,
+        rintros B ⟨x, hx, hB⟩,
+        rw ← hB,
+        specialize hφ x hx, rw exists_prop at hφ,
+        exact hφ.2, }, },
+    rw clef,
+    apply union,
+    rintros B ⟨x, hx, hB⟩,
+    rw ← hB,
+    apply generated_open.generator,
+    use [x, φ x hx], },
+end
+
 end metric_space_basic
 
 open topological_space
