@@ -8,17 +8,17 @@ noncomputable theory
 open set
 
 -- Definition d'un espace métrique :
-class metric_space_basic (X : Type) :=
+class metric_space (X : Type) :=
   (dist : X → X → ℝ)
   (dist_eq_zero_iff : ∀ x y, dist x y = 0 ↔ x = y)
   (dist_symm : ∀ x y, dist x y = dist y x)
   (triangle : ∀ x y z, dist x z ≤ dist x y + dist y z)
 
-namespace metric_space_basic
+namespace metric_space
 open topological_space
 
 -- Preuve que la distance est positive à partir des autres axiomes :
-lemma dist_nonneg {X : Type} [metric_space_basic X] (x y : X) : 0 ≤ dist x y :=
+lemma dist_nonneg {X : Type} [metric_space X] (x y : X) : 0 ≤ dist x y :=
 begin
   have :=
   calc 0 = dist x x : by rw (dist_eq_zero_iff x x).2 rfl
@@ -29,11 +29,11 @@ begin
 end
 
 -- Topologie induite par la distance :
-instance {X : Type} [metric_space_basic X] : topological_space X :=
+instance {X : Type} [metric_space X] : topological_space X :=
 generate_from X { B | ∃ (x : X) r, B = {y | dist x y < r} }
 
 -- Caractérisation des ouverts pour la distance :
-lemma is_open_metric_iff {X : Type} [metric_space_basic X] {U : set X}:
+lemma is_open_metric_iff {X : Type} [metric_space X] {U : set X}:
 is_open U ↔ ∀ x ∈ U, ∃ r > 0, {y | dist x y < r} ⊆ U :=
 begin
   split,
@@ -89,13 +89,13 @@ begin
     use [x, φ x hx], },
 end
 
-end metric_space_basic
+end metric_space
 
 open topological_space
-open metric_space_basic
+open metric_space
 
 -- Espace métrique ℝ :
-instance : metric_space_basic ℝ :=
+instance metric_space_R : metric_space ℝ :=
 { dist := λ x y,  abs (x - y),
   dist_eq_zero_iff :=
   begin
@@ -115,9 +115,10 @@ instance : metric_space_basic ℝ :=
                  ... ≤ abs (x - y) + abs (y - z) : abs_add _ _,
   end }
 
+
 -- Produit de deux espaces métriques :
-instance prod.metric_space_basic (X Y : Type) [metric_space_basic X] [metric_space_basic Y] :
-metric_space_basic (X × Y) :=
+instance prod.metric_space (X Y : Type) [metric_space X] [metric_space Y] :
+metric_space (X × Y) :=
 { dist := λ u v, max (dist u.fst v.fst) (dist u.snd v.snd),
   dist_eq_zero_iff :=
   begin
@@ -145,69 +146,6 @@ metric_space_basic (X × Y) :=
     linarith,
   end
   }
-
-/- On redéfinit maintenant un espace métrique comme la donnée d'un espace topologique et d'un espace métrique
-tels que la topologie soit égale à la topologie induite par la distance : -/
-class metric_space (X : Type) extends topological_space X, metric_space_basic X :=
-  (compatible : ∀ U, is_open U ↔ generated_open X { B | ∃ (x : X) r, B = {y | dist x y < r}} U)
-
-namespace metric_space
-open topological_space
-
-def of_basic {X : Type} (m : metric_space_basic X) : metric_space X :=
-{ compatible := begin intros, refl, end,
-  ..m,
-  ..@metric_space_basic.topological_space X m }
-
-/- Sur un produit de deux espaces métriques,
-la topologie produit est égale à la topologie induite par la distance produit : -/
-instance {X Y : Type} [metric_space X] [metric_space Y] : metric_space (X × Y) :=
-{ compatible :=
-  begin
-    intro U,
-    split,
-    { intro hyp,
-      sorry, },
-    { intro hyp,
-      induction hyp,
-      { rcases hyp_H with ⟨ x, r, hA ⟩,
-        rw is_open_prod_iff,
-        intros a b hab, rw hA at hab,
-        have := calc dist x.fst a ≤ dist x (a, b) : le_max_left _ _
-                              ... < r             : hab,
-        have := calc dist x.snd b ≤ dist x (a, b) : le_max_right _ _
-                              ... < r             : hab,
-        use [{y : X | dist a y < r - dist x.fst a}, {y : Y | dist b y < r - dist x.snd b}],
-        repeat {split},
-        apply generated_open.generator, use [a, r - dist x.fst a],
-        apply generated_open.generator, use [b, r - dist x.snd b],
-        calc dist a a = 0                 : (dist_eq_zero_iff a a).2 rfl
-                  ... < r - dist x.fst a : by linarith,
-        calc dist b b = 0                : (dist_eq_zero_iff b b).2 rfl
-                  ... < r - dist x.snd b : by linarith,
-        intros y hy,
-        rw hA,
-        have : dist a y.fst < r - dist x.fst a, exact hy.1,
-        have left :=
-        calc dist x.fst y.fst ≤ dist x.fst a + dist a y.fst : triangle x.fst a y.fst
-                       ... < dist x.fst a + (r - dist x.fst a) : by linarith
-                       ... = r : by linarith,
-        have : dist b y.snd < r - dist x.snd b, exact hy.2,
-        have right :=
-        calc dist x.snd y.snd ≤ dist x.snd b + dist b y.snd : triangle x.snd b y.snd
-                       ... < dist x.snd b + (r - dist x.snd b) : by linarith
-                       ... = r : by linarith,
-        exact max_lt left right, },
-      { exact generated_open.inter hyp_A hyp_B hyp_ih_ᾰ hyp_ih_ᾰ_1, },
-      { exact generated_open.union hyp_B hyp_ih, },
-      { exact generated_open.univ, }, },
-  end,
-  ..prod.topological_space X Y,
-  ..prod.metric_space_basic X Y, }
-
-local attribute [-instance] metric_space_basic.topological_space
-
-end metric_space
 
 -- Tout espace métrique est séparé :
 instance metric_t2 {X : Type} [metric_space X] : t2_space X :=
