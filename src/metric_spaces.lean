@@ -1,4 +1,5 @@
 import topological_spaces
+import topological_spaces2
 import t2_spaces
 
 import data.real.basic
@@ -93,6 +94,27 @@ end metric_space_basic
 open topological_space
 open metric_space_basic
 
+-- Espace métrique ℝ :
+instance : metric_space_basic ℝ :=
+{ dist := λ x y,  abs (x - y),
+  dist_eq_zero_iff :=
+  begin
+    intros x y,
+    split,
+    intro hyp,
+    linarith [abs_eq_zero.1 hyp],
+    intro hyp,
+    simp [hyp],
+  end,
+  dist_symm := abs_sub,
+  triangle :=
+  begin
+    intros x y z,
+    have clef : x - z = (x - y) + (y - z), linarith,
+    calc abs (x - z) = abs ((x - y) + (y - z))   : by simp [clef]
+                 ... ≤ abs (x - y) + abs (y - z) : abs_add _ _,
+  end }
+
 -- Produit de deux espaces métriques :
 instance prod.metric_space_basic (X Y : Type) [metric_space_basic X] [metric_space_basic Y] :
 metric_space_basic (X × Y) :=
@@ -123,60 +145,6 @@ metric_space_basic (X × Y) :=
     linarith,
   end
   }
-
--- Tout espace métrique est séparé :
-instance metric_t2 {X : Type} [metric_space_basic X] : t2_space X :=
-{ t2 :=
-begin
-  intros x y hxy,
-  let r := dist x y,
-  have r_strict_pos : r > 0,
-  { cases le_or_gt r 0 with h1 h2,
-    exfalso, exact hxy ((dist_eq_zero_iff x y).1 (le_antisymm h1 (dist_nonneg x y))),
-    exact h2, },
-  let Ux := {z : X | dist x z < r/2},
-  let Uy := {z : X | dist y z < r/2},
-  use [Ux, Uy],
-  repeat {split},
-  apply generated_open.generator, use [x, r/2],
-  apply generated_open.generator, use [y, r/2],
-  calc dist x x = 0   : (dist_eq_zero_iff x x).2 rfl
-            ... < r/2 : by linarith,
-  calc dist y y = 0   : (dist_eq_zero_iff y y).2 rfl
-            ... < r/2 : by linarith,
-  apply le_antisymm,
-  { rintros z ⟨ hzUx, hzUy ⟩,
-    have hxz : dist x z < r/2, exact hzUx,
-    have hyz : dist y z < r/2, exact hzUy,
-    have :=
-    calc dist x y ≤ dist x z + dist z y : triangle x z y
-              ... = dist x z + dist y z : by linarith [dist_symm y z]
-              ... < r/2 + r/2           : by linarith [hxz, hyz]
-              ... = r                   : by linarith,
-    linarith, },
-  { intros x hx, exfalso, exact hx, },
-end }
-
--- Espace métrique ℝ :
-instance : metric_space_basic ℝ :=
-{ dist := λ x y,  abs (x - y),
-  dist_eq_zero_iff :=
-  begin
-    intros x y,
-    split,
-    intro hyp,
-    linarith [abs_eq_zero.1 hyp],
-    intro hyp,
-    simp [hyp],
-  end,
-  dist_symm := abs_sub,
-  triangle :=
-  begin
-    intros x y z,
-    have clef : x - z = (x - y) + (y - z), linarith,
-    calc abs (x - z) = abs ((x - y) + (y - z))   : by simp [clef]
-                 ... ≤ abs (x - y) + abs (y - z) : abs_add _ _,
-  end }
 
 /- On redéfinit maintenant un espace métrique comme la donnée d'un espace topologique et d'un espace métrique
 tels que la topologie soit égale à la topologie induite par la distance : -/
@@ -240,3 +208,68 @@ instance {X Y : Type} [metric_space X] [metric_space Y] : metric_space (X × Y) 
 local attribute [-instance] metric_space_basic.topological_space
 
 end metric_space
+
+-- Tout espace métrique est séparé :
+instance metric_t2 {X : Type} [metric_space X] : t2_space X :=
+{ t2 :=
+begin
+  intros x y hxy,
+  let r := dist x y,
+  have r_strict_pos : r > 0,
+  { cases le_or_gt r 0 with h1 h2,
+    exfalso, exact hxy ((dist_eq_zero_iff x y).1 (le_antisymm h1 (dist_nonneg x y))),
+    exact h2, },
+  let Ux := {z : X | dist x z < r/2},
+  let Uy := {z : X | dist y z < r/2},
+  use [Ux, Uy],
+  repeat {split},
+  apply generated_open.generator, use [x, r/2],
+  apply generated_open.generator, use [y, r/2],
+  calc dist x x = 0   : (dist_eq_zero_iff x x).2 rfl
+            ... < r/2 : by linarith,
+  calc dist y y = 0   : (dist_eq_zero_iff y y).2 rfl
+            ... < r/2 : by linarith,
+  apply le_antisymm,
+  { rintros z ⟨ hzUx, hzUy ⟩,
+    have hxz : dist x z < r/2, exact hzUx,
+    have hyz : dist y z < r/2, exact hzUy,
+    have :=
+    calc dist x y ≤ dist x z + dist z y : triangle x z y
+              ... = dist x z + dist y z : by linarith [dist_symm y z]
+              ... < r/2 + r/2           : by linarith [hxz, hyz]
+              ... = r                   : by linarith,
+    linarith, },
+  { intros x hx, exfalso, exact hx, },
+end }
+
+-- Convergence d'une suite dans un espace métrique :
+lemma seq_lim_metric {X : Type} [metric_space X] (u : ℕ → X) (l : X) :
+seq_lim u l ↔ ∀ ε > 0, ∃ (N : ℕ), ∀ n ≥ N, dist (u n) l < ε :=
+begin
+  split,
+  { intro hyp,
+    intros ε εpos,
+    let V := { x | dist l x < ε },
+    have hV : neighbourhood l V,
+    { use V, repeat {split},
+      apply generated_open.generator,
+      use [l, ε],
+      calc dist l l = 0 : (dist_eq_zero_iff l l).2 rfl
+                ... < ε : by linarith [εpos],
+      exact le_refl V, },
+    cases hyp V hV with N hN,
+    use N,
+    intros n hn,
+    calc dist (u n) l = dist l (u n) : dist_symm (u n) l
+                  ... < ε            : hN n hn, },
+  { intro hyp,
+    rintros V ⟨U, hU, hlU, hUV⟩,
+    rcases is_open_metric_iff.1 hU l hlU with ⟨ε, εpos, H⟩,
+    cases hyp ε εpos with N hN,
+    use N,
+    intros n hn,
+    apply hUV,
+    apply H,
+    calc dist l (u n) = dist (u n) l : dist_symm l (u n)
+                  ... < ε            : hN n hn, },
+end
