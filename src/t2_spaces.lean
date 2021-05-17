@@ -23,7 +23,7 @@ begin
     have : z = x, exact hz.1,
     have : z = y, exact hz.2,
     cc, },
-  { intros x hx, exfalso, exact hx,},
+  { intros x hx, exfalso, exact hx, },
 end }
 
 -- Unicité de la limite dans un espace séparé :
@@ -35,8 +35,6 @@ begin
   cases (h1 Ux ⟨ Ux, hUx, hx, le_refl Ux⟩) with N1 hN1,
   cases (h2 Uy ⟨ Uy, hUy, hy, le_refl Uy⟩) with N2 hN2,
   have clef : u (max N1 N2) ∈ Ux ∩ Uy,
-  split,
-  exact hN1 (max N1 N2) (le_max_left N1 N2),
-  exact hN2 (max N1 N2) (le_max_right N1 N2),
+  exact ⟨hN1 (max N1 N2) (le_max_left N1 N2), hN2 (max N1 N2) (le_max_right N1 N2)⟩,
   rwa hUxUy at clef,
 end
