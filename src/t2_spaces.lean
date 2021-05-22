@@ -1,4 +1,8 @@
+import tactic
+import data.set.finite
+
 import topological_spaces
+import neighbourhoods
 import topological_spaces2
 
 open set
@@ -32,8 +36,8 @@ lemma lim_unique {X : Type} [topological_space X] [t2_space X] (u : ℕ → X) (
 begin
   by_contradiction,
   rcases (t2_space.t2 x y h) with ⟨ Ux, Uy, hUx, hUy, hx, hy, hUxUy ⟩,
-  cases (h1 Ux ⟨ Ux, hUx, hx, le_refl Ux⟩) with N1 hN1,
-  cases (h2 Uy ⟨ Uy, hUy, hy, le_refl Uy⟩) with N2 hN2,
+  cases (h1 Ux (generated_filter.generator Ux ⟨hUx, hx⟩)) with N1 hN1,
+  cases (h2 Uy (generated_filter.generator Uy ⟨hUy, hy⟩)) with N2 hN2,
   have clef : u (max N1 N2) ∈ Ux ∩ Uy,
   exact ⟨hN1 (max N1 N2) (le_max_left N1 N2), hN2 (max N1 N2) (le_max_right N1 N2)⟩,
   rwa hUxUy at clef,

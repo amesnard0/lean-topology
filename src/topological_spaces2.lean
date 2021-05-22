@@ -1,16 +1,16 @@
+import tactic
+import data.set.finite
+
 import topological_spaces
+import neighbourhoods
 
 open set
 
 open topological_space
 
--- Voisinage :
-def neighbourhood {X : Type} [topological_space X] (x : X) (V : set X) : Prop :=
-∃ (U : set X), is_open U ∧ x ∈ U ∧ U ⊆ V
-
 -- Convergence d'une suite :
 def seq_lim {X : Type} [topological_space X] (u : ℕ → X) (l : X) : Prop :=
-∀ (V : set X), neighbourhood l V → ∃ (N : ℕ), ∀ n ≥ N, u n ∈ V
+∀ (V : set X), V ∈ neighbourhoods l → ∃ (N : ℕ), ∀ n ≥ N, u n ∈ V
 
 -- Fonction continue :
 def continuous {X Y : Type} [topological_space X] [topological_space Y] (f : X → Y) : Prop :=
@@ -36,14 +36,15 @@ def interior {X : Type} [topological_space X] (A : set X) : set X := ⋃₀ {U :
 
 -- Point intérieur :
 lemma interior_point {X : Type} [topological_space X] (A : set X) :
-∀ a ∈ A, a ∈ interior A ↔ ∃ U, is_open U ∧ U ⊆ A ∧ a ∈ U :=
+∀ a ∈ A, a ∈ interior A ↔ A ∈ neighbourhoods a :=
 begin
   intros a ha,
+  rw is_neighbourhood_iff,
   split,
   rintro ⟨U, ⟨hU, hUA⟩, haU⟩,
-  use [U, hU, hUA, haU],
+  use [U, hU, haU, hUA],
   rintro ⟨U, hU, hUA, haU⟩,
-  use [U, hU, hUA, haU],
+  use [U, hU, haU, hUA],
 end
 
 -- Adhérence d'une partie :
@@ -96,12 +97,13 @@ end
 
 -- Point adhérent :
 lemma point_of_closure {X : Type} [topological_space X] (A : set X) :
-∀ (x : X), x ∈ closure A ↔ ∀ (V : set X), neighbourhood x V → (V ∩ A).nonempty :=
+∀ (x : X), x ∈ closure A ↔ ∀ (V : set X), V ∈ neighbourhoods x → (V ∩ A).nonempty :=
 begin
   intro x,
   split,
   { intro hyp,
-    rintros V ⟨U, hU, hxU, hUV⟩,
+    intros V hV,
+    rcases (is_neighbourhood_iff x).1 hV with ⟨U, hU, hxU, hUV⟩,
     by_contradiction hVA,
     have H1 : is_closed (compl U),
     { rw ← (compl_compl U) at hU,
@@ -116,8 +118,9 @@ begin
   { intro hyp,
     rintros F ⟨hF, hAF⟩,
     by_contradiction,
-    have clef : neighbourhood x (compl F),
-      exact ⟨compl F, hF, h, subset.refl _⟩,
+    have clef : compl F ∈ neighbourhoods x,
+      { apply generated_filter.generator,
+        exact ⟨hF, h⟩, },
     cases hyp (compl F) clef with x hx,
     exact hx.1 (hAF hx.2), },
 end
@@ -143,11 +146,12 @@ begin
     intro A,
     rintros y ⟨x, hx, hy⟩,
     rw point_of_closure (f '' A) y,
-    rintros V ⟨U, hU, hyU, hUV⟩,
-    have clef : neighbourhood x (f ⁻¹' U),
-    { use (f ⁻¹' U),
+    intros V hV,
+    rcases (is_neighbourhood_iff y).1 hV with ⟨U, hU, hyU, hUV⟩,
+    have clef : (f ⁻¹' U) ∈ neighbourhoods x,
+    { apply generated_filter.generator,
       rw ← hy at hyU,
-      exact ⟨hyp U hU, hyU, le_refl (f ⁻¹' U)⟩, },
+      exact ⟨hyp U hU, hyU⟩, },
     cases (point_of_closure A x).1 hx (f ⁻¹' U) clef with x' hx',
     use f x',
     split,

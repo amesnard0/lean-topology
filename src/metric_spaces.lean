@@ -1,8 +1,11 @@
+import tactic
+import data.set.finite
+import data.real.basic
+
 import topological_spaces
+import neighbourhoods
 import topological_spaces2
 import t2_spaces
-
-import data.real.basic
 
 noncomputable theory
 open set
@@ -187,20 +190,20 @@ begin
   { intro hyp,
     intros ε εpos,
     let V := { x | dist l x < ε },
-    have hV : neighbourhood l V,
-    { use V, repeat {split},
+    have hV : V ∈ neighbourhoods l,
+    { apply generated_filter.generator, split,
       apply generated_open.generator,
       use [l, ε],
       calc dist l l = 0 : (dist_eq_zero_iff l l).2 rfl
-                ... < ε : by linarith [εpos],
-      exact le_refl V, },
+                ... < ε : by linarith [εpos], },
     cases hyp V hV with N hN,
     use N,
     intros n hn,
     calc dist (u n) l = dist l (u n) : dist_symm (u n) l
                   ... < ε            : hN n hn, },
   { intro hyp,
-    rintros V ⟨U, hU, hlU, hUV⟩,
+    intros V hV,
+    rcases (is_neighbourhood_iff l).1 hV with ⟨U, hU, hlU, hUV⟩,
     rcases is_open_metric_iff.1 hU l hlU with ⟨ε, εpos, H⟩,
     cases hyp ε εpos with N hN,
     use N,
