@@ -1,4 +1,8 @@
+import tactic
+import data.set.finite
+
 import topological_spaces
+import neighbourhoods
 import topological_spaces2
 
 open set
@@ -100,13 +104,16 @@ pointwise_lim f F ↔ seq_lim f F :=
 begin
   split,
   { intro hyp,
-    rintros V ⟨U, hU, hFU, hUV⟩,
+    intros V hV,
+    rcases (is_neighbourhood_iff F).1 hV with ⟨U, hU, hFU, hUV⟩,
     rw is_open_fnct_iff at hU,
     rcases hU F hFU with ⟨D, φ, hD, hφ, h1, h2, h3⟩,
     cases em (D.nonempty) with hD1 hD2,
     { have clef : ∀ x, ∃ (N : ℕ), ∀ n ≥ N, f n x ∈ φ x,
       { intros x,
-        have hφx : neighbourhood (F x) (φ x), use [φ x, h1 x, h2 x],
+        have hφx : (φ x) ∈ neighbourhoods (F x),
+        { rw is_neighbourhood_iff,
+          use [φ x, h1 x, h2 x], },
         exact hyp x (φ x) hφx, },
       choose ψ hψ using clef,
       cases finite.exists_maximal_wrt ψ D hD hD1 with x₀ hx₀, rw exists_prop at hx₀,
@@ -129,10 +136,12 @@ begin
       apply hUV, apply h3,
       intro x, rw hφ x (hD2 x), simp, }, },
   { intro hyp,
-    rintros x Vx ⟨Ux, hUx, hxUx, hUxVx⟩,
+    intros x Vx hVx,
+    rcases (is_neighbourhood_iff (F x)).1 hVx with ⟨Ux, hUx, hxUx, hUxVx⟩,
     let V := {g : X → Y | g x ∈ Vx},
-    have hV: neighbourhood F V,
-    { use {g : X → Y | g x ∈ Ux}, repeat {split},
+    have hV: V ∈ neighbourhoods F,
+    { rw is_neighbourhood_iff,
+      use {g : X → Y | g x ∈ Ux}, repeat {split},
       apply generated_open.generator,
       use [x, Ux, hUx],
       exact hxUx,
