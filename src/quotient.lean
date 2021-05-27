@@ -20,7 +20,9 @@ begin
   have clef : ∀ (n : ℕ), ∃ (q : ℚ), x < q ∧ (q : ℝ) < x + 1/(n+1),
   intro n,
   apply exists_rat_btwn,
-  sorry,
+  { have : (0 : ℝ) < 1/(n+1),
+   exact nat.one_div_pos_of_nat,
+   linarith },
   choose u hu using clef,
   apply seq_lim_closure (λ n, (u n : ℝ)), simp,
   sorry,
@@ -40,7 +42,7 @@ instance quot.topological_space {X : Type} [topological_space X] (s : setoid X) 
     exact hB b,
   end }
 
--- Relation d'équivalence définissant ℝ/ℚ :
+-- Relation d'equivalence definissant ℝ/ℚ :
 def real.rel_Q : setoid ℝ :=
 { r := λ x y, ∃ (q : ℚ), x - y = q,
   iseqv :=
@@ -59,7 +61,7 @@ def real.rel_Q : setoid ℝ :=
            ... = ↑(q + q') : by simp [hq, hq'],
   end}
 
--- La topologie quotient sur ℝ/ℚ est la topologie grossière :
+-- La topologie quotient sur ℝ/ℚ est la topologie grossiere :
 example (U : set (quotient real.rel_Q)) : is_open U ↔ U = ∅ ∨ U = univ :=
 begin
   split,
@@ -99,7 +101,7 @@ begin
     rw h2, exact univ_mem, },
 end
 
--- Relation d'équivalence définissant ℝ/ℤ :
+-- Relation d'equivalence definissant ℝ/ℤ :
 def real.rel_Z : setoid ℝ :=
 { r := λ x y, ∃ (n : ℤ), x - y = n,
   iseqv :=
