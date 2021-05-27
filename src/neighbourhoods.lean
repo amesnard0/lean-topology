@@ -9,15 +9,18 @@ open topological_space
 class filter {X : Type} (F : set (set X)) :=
   ( inter  : ∀ {a b}, F a → F b → F (a ∩ b) )
   ( upward : ∀ {a b}, F a → a ⊆ b → F b )
+  ( univ   : F univ )
 
 inductive generated_filter {X : Type} (G : set (set X)) : set (set X)
 | generator : ∀ g ∈ G, generated_filter g
 | inter     : ∀ a b, generated_filter a → generated_filter b → generated_filter (a ∩ b)
 | upward    : ∀ a b, generated_filter a → a ⊆ b → generated_filter b
+| univ      : generated_filter univ
 
 instance generated_filter_is_filter {X : Type} (G : set (set X)) : filter (generated_filter G) :=
-{ inter := generated_filter.inter,
-  upward := generated_filter.upward, }
+{ inter  := generated_filter.inter,
+  upward := generated_filter.upward,
+  univ   := generated_filter.univ, }
 
 def neighbourhoods {X : Type} [topological_space X] (x : X) :=
 generated_filter {u : set X | is_open u ∧ x ∈ u}
@@ -37,7 +40,8 @@ begin
       use [u1 ∩ u2, inter hu1 hu2, hxu1, hxu2],
       intros x hx, exact ⟨hu1a hx.1, hu2b hx.2⟩, },
     { rcases ha2 with ⟨u, hu, hxu, hua⟩,
-      use [u, hu, hxu, subset.trans hua hb], }, },
+      use [u, hu, hxu, subset.trans hua hb], },
+    { use [univ, univ_mem], simp, }, },
   { rintro ⟨u, hu, hxu, huv⟩,
     apply (neighbourhoods_filter x).upward,
     apply generated_filter.generator,
